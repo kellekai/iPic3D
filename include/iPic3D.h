@@ -64,6 +64,7 @@ namespace iPic3D {
 
     PSK::OutputManager < PSK::OutputAdaptor > output_mgr; // Create an Output Manager
     myOutputAgent < PSK::HDF5OutputAdaptor > hdf5_agent;  // Create an Output Agent for HDF5 output
+    myOutputAgent < PSK::FTIOutputAdaptor > fti_agent;   // Create FTI Output Agent for checkpointing
 
     bool verbose;
     string SaveDirName;

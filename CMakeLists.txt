@@ -34,6 +34,7 @@ include_directories(
     include
     ${MPI_INCLUDE_PATH}
     ${HDF5_INCLUDE_DIRS}
+    /home/kellekai/WORK/DEEP-EST/D6.1/apps/FTI-0.9.6/RELEASE/include
 )
 
 #
@@ -54,6 +55,7 @@ target_link_libraries(
     iPic3Dlib
     ${MPI_LIBRARIES}
     ${HDF5_LIBRARIES}
+    /home/kellekai/WORK/DEEP-EST/D6.1/apps/FTI-0.9.6/RELEASE/lib/libfti.so
 )
 
 #

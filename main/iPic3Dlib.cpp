@@ -10,7 +10,7 @@ int c_Solver::Init(int argc, char **argv) {
   mpi = new MPIdata(&argc, &argv);
   nprocs = mpi->nprocs;
   myrank = mpi->rank;
-
+    
   col = new Collective(argc, argv); // Every proc loads the parameters of simulation from class Collective
   verbose = col->getVerbose();
   restart_cycle = col->getRestartOutputCycle();
@@ -174,6 +174,10 @@ int c_Solver::Init(int argc, char **argv) {
   my_file.close();
 
   Qremoved = new double[ns];
+      
+#ifdef FTI_CKPT
+  FTI_Init("config.fti", MPI_COMM_WORLD);
+#endif // FTI_CKPT
 
   my_clock = new Timing(myrank);
 
@@ -318,7 +322,11 @@ void c_Solver::WriteRestart(int cycle) {
   if (cycle % restart_cycle == 0 && cycle != first_cycle) {
     if (col->getWriteMethod() != "h5hut") {
       // without ,0 add to restart file
-      writeRESTART(RestartDirName, myrank, cycle, ns, mpi, vct, col, grid, EMf, part, 0);
+#ifdef FTI_CKPT
+      writeRESTART_FTI(myrank, cycle, ns, mpi, vct, col, grid, EMf, part);
+#endif
+//    writeRESTART(RestartDirName, myrank, cycle, ns, mpi, vct, col, grid, EMf, part, 0);
+    writeRESTART(RestartDirName, myrank, cycle, ns, mpi, vct, col, grid, EMf, part);
     }
   }
 

@@ -95,6 +95,7 @@ include_directories(
         ${H5HUTIO_INCLUDE_DIRS}
         ${HDF5_INCLUDE_DIRS}
         ${MPI_INCLUDE_PATH}
+        /home/kellekai/WORK/DEEP-EST/D6.1/apps/FTI-0.9.6/RELEASE/include
 )
 
 link_directories(
@@ -119,4 +120,5 @@ add_library(
 target_link_libraries(
          iPic3Dlib
          ${H5HUTIO_LIBRARIES}
+        /home/kellekai/WORK/DEEP-EST/D6.1/apps/FTI-0.9.6/RELEASE/lib/libfti.so
 )

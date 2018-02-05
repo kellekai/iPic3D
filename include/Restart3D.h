@@ -9,12 +9,14 @@
 #include "Field.h"
 #include "Particles3Dcomm.h"
 #include "PSKhdf5adaptor.h"
+#include "PSKftiadaptor.h"
 
 #include <string>
 
 using std::string;
 using std::stringstream;
 
+void writeRESTART_FTI(int myrank, int cycle, int ns, MPIdata * mpi, VCtopology3D * vct, Collective * col, Grid * grid, Field * field, Particles3Dcomm * part);
 
 /** write the restart file at any RESTART_CYCLE, useful for reading intermediate results */
 void writeRESTART(string SaveDirName, int myrank, int cycle, int ns, MPIdata * mpi, VCtopology3D * vct, Collective * col, Grid * grid, Field * field, Particles3Dcomm * part);

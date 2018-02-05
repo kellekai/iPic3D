@@ -77,6 +77,24 @@ public:
   int getZleft_neighbor() {return(zleft_neighbor);};
   /** get the cartesian rank of ZRIGHT neighbor */
   int getZright_neighbor() {return(zright_neighbor);};
+  
+#ifdef FTI_CKPT
+  /** get the cartesian rank of the process */
+  int* getCartesian_rank_ptr() {return(&cartesian_rank);};
+  /** get the cartesian rank of XLEFT neighbor */
+  int* getXleft_neighbor_ptr() {return(&xleft_neighbor);};
+  /** get the cartesian rank of XRIGHT neighbor */
+  int* getXright_neighbor_ptr() {return(&xright_neighbor);};
+  /** get the cartesian rank of YLEFT neighbor */
+  int* getYleft_neighbor_ptr() {return(&yleft_neighbor);};
+  /** get the cartesian rank of YRIGHT neighbor */
+  int* getYright_neighbor_ptr() {return(&yright_neighbor);};
+  /** get the cartesian rank of ZLEFT neighbor */
+  int* getZleft_neighbor_ptr() {return(&zleft_neighbor);};
+  /** get the cartesian rank of ZRIGHT neighbor */
+  int* getZright_neighbor_ptr() {return(&zright_neighbor);};
+#endif
+
   /** get the cartesian rank of XLEFT neighbor */
   int getXleft_neighbor_P() {return(xleft_neighbor_P);};
   /** get the cartesian rank of XRIGHT neighbor */

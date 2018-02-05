@@ -1,5 +1,22 @@
-
 #include "Restart3D.h"
+
+#ifdef FTI_CKPT
+/** write the restart file at any RESTART_CYCLE, useful for reading intermediate results */
+void writeRESTART_FTI(int myrank, int cycle, int ns, MPIdata * mpi, VCtopology3D * vct, Collective * col, Grid * grid, Field * field, Particles3Dcomm * part) {
+
+  myOutputAgent < PSK::FTIOutputAdaptor > fti_agent;
+  fti_agent.set_simulation_pointers(field, grid, vct, mpi, col);
+  for (int i = 0; i < ns; ++i)
+    fti_agent.set_simulation_pointers_part(&part[i]);
+  
+  fti_agent.output("proc_topology ", 0);
+  
+  FTI_Checkpoint(1, 1);
+  
+  //Finalize restart write call
+  //FinalizeRestartFTI();
+}
+#endif
 
 /** write the restart file at any RESTART_CYCLE, useful for reading intermediate results */
 void writeRESTART(string SaveDirName, int myrank, int cycle, int ns, MPIdata * mpi, VCtopology3D * vct, Collective * col, Grid * grid, Field * field, Particles3Dcomm * part) {
@@ -37,6 +54,7 @@ void writeRESTART(string SaveDirName, int myrank, int cycle, int ns, MPIdata * m
   for (int i = 0; i < ns; ++i)
     hdf5_agent.set_simulation_pointers_part(&part[i]);
 
+  cout << "HDF5-CIRCLE:" << cycle << endl;
   // Add the HDF5 output agent to the Output Manager's list
   output_mgr.push_back(&hdf5_agent);
   // Print Collective informations
