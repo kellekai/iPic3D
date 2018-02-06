@@ -176,7 +176,7 @@ int c_Solver::Init(int argc, char **argv) {
   Qremoved = new double[ns];
       
 #ifdef FTI_CKPT
-  FTI_Init("config.fti", MPI_COMM_WORLD);
+  FTIOutputAdaptor::init();
 #endif // FTI_CKPT
 
   my_clock = new Timing(myrank);
@@ -325,8 +325,8 @@ void c_Solver::WriteRestart(int cycle) {
 #ifdef FTI_CKPT
       writeRESTART_FTI(myrank, cycle, ns, mpi, vct, col, grid, EMf, part);
 #endif
-//    writeRESTART(RestartDirName, myrank, cycle, ns, mpi, vct, col, grid, EMf, part, 0);
-    writeRESTART(RestartDirName, myrank, cycle, ns, mpi, vct, col, grid, EMf, part);
+    writeRESTART(RestartDirName, myrank, cycle, ns, mpi, vct, col, grid, EMf, part, 0);
+    //writeRESTART(RestartDirName, myrank, cycle, ns, mpi, vct, col, grid, EMf, part);
     }
   }
 

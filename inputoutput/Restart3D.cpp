@@ -10,6 +10,9 @@ void writeRESTART_FTI(int myrank, int cycle, int ns, MPIdata * mpi, VCtopology3D
     fti_agent.set_simulation_pointers_part(&part[i]);
   
   fti_agent.output("proc_topology ", 0);
+  fti_agent.output("Eall + Ball + rhos", 0);
+  fti_agent.output("position + velocity + q ", 0, 0);
+  fti_agent.output("last_cycle", cycle);
   
   FTI_Checkpoint(1, 1);
   
@@ -54,7 +57,6 @@ void writeRESTART(string SaveDirName, int myrank, int cycle, int ns, MPIdata * m
   for (int i = 0; i < ns; ++i)
     hdf5_agent.set_simulation_pointers_part(&part[i]);
 
-  cout << "HDF5-CIRCLE:" << cycle << endl;
   // Add the HDF5 output agent to the Output Manager's list
   output_mgr.push_back(&hdf5_agent);
   // Print Collective informations

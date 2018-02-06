@@ -5,6 +5,7 @@
 
 #include "PSKOutput.h"
 #include "PSKhdf5adaptor.h"
+#include "PSKftiadaptor.h"
 
 using namespace std;
 

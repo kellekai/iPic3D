@@ -4,17 +4,17 @@
 
 
 // init static HDF5 groups
-#if defined(FTI_CKPT) && defined(FTI_HDF5)
-FTIT_H5Group topoGroup;
-FTIT_H5Group fieldGroup;
-FTIT_H5Group BxGroup;
-FTIT_H5Group ByGroup;
-FTIT_H5Group BzGroup;
-FTIT_H5Group ExGroup;
-FTIT_H5Group EyGroup;
-FTIT_H5Group EzGroup;
-#endif
-int dummy = 1;
+//#if defined(FTI_CKPT) && defined(FTI_HDF5)
+//FTIT_H5Group topoGroup;
+//FTIT_H5Group fieldGroup;
+//FTIT_H5Group BxGroup;
+//FTIT_H5Group ByGroup;
+//FTIT_H5Group BzGroup;
+//FTIT_H5Group ExGroup;
+//FTIT_H5Group EyGroup;
+//FTIT_H5Group EzGroup;
+//#endif
+//int dummy = 1;
 
 using namespace iPic3D;
 

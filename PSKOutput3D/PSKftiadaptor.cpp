@@ -6,12 +6,12 @@ using namespace PSK;
 //FTIOutputAdaptor fti_agent;
 
 // TODO hack
-int ns = 2;
+int FTIOutputAdaptor::ns = 2;
 
 // definition of pointer array for protected variables
-vector<void*> FTIOutputAdaptor::buffers;
+std::vector<void*> FTIOutputAdaptor::buffers;
 int FTIOutputAdaptor::var_id;
-vector<std::pair<FTIT_H5Group*, std::string>> FTIOutputAdaptor::groups;
+std::vector<std::pair<FTIT_H5Group, std::string>> FTIOutputAdaptor::groups;
 
 /* 
  * 
@@ -29,15 +29,18 @@ std::string FTIOutputAdaptor::purify_object_name(const std::string & objname) {
 }
 
 FTIT_H5Group* FTIOutputAdaptor::get_group_ptr(const std::string & tag) {
-    for(std::vector< std::pair<FTIT_H5Group*,std::string> >::iterator it=groups.begin(); it!=groups.end(); ++it) {
-        if( tag.compare((*it).second) ) {
-            return (*it).first;
+    for(std::vector< std::pair<FTIT_H5Group,std::string> >::iterator it=groups.begin(); it!=groups.end(); ++it) {
+        if( tag.compare((*it).second) == 0 ) {
+            return &((*it).first);
         }
     }
+    return NULL;
 }
 
 void FTIOutputAdaptor::init() {
 
+  FTI_Init("config.fti", MPI_COMM_WORLD);
+   
   var_id = 0;
 #  ifdef FTI_HDF5
   init_groups();
@@ -46,64 +49,111 @@ void FTIOutputAdaptor::init() {
 }
 
 void FTIOutputAdaptor::init_groups() {
-
+  
   int i;
-  FTIT_H5Group *group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group));
-  FTI_InitGroup( group_ptr, "topology", NULL );
-  groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/topology"));
- 
-  group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-  FTI_InitGroup( group_ptr, "moments", NULL );
-  groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/moments"));
+  FTIT_H5Group H5Group;
+  std::pair<FTIT_H5Group, std::string> H5Pair;
   
-  group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-  FTI_InitGroup( group_ptr, "rho", get_group_ptr("/moments") );
-  groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/rho"));
+  FTI_InitGroup( &H5Group, "topology", NULL );
+  H5Pair.first = H5Group; 
+  H5Pair.second = "/topology";
+  groups.push_back(H5Pair);
+
+  FTI_InitGroup( &H5Group, "moments", NULL );
+  H5Pair.first = H5Group; 
+  H5Pair.second = "/moments";
+  groups.push_back(H5Pair);
+
+  FTI_InitGroup( &H5Group, "rho", get_group_ptr("/moments") );
+  H5Pair.first = H5Group; 
+  H5Pair.second = "/moments/rho";
+  groups.push_back(H5Pair);
+
   for(i=0; i<ns; i++){
-    group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-    FTI_InitGroup( group_ptr, std::string("species_" + to_string(i)).c_str(), get_group_ptr("/rho") );
-    groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/rho/species_" + to_string(i)));
-    group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-    FTI_InitGroup( group_ptr, "rho", get_group_ptr("/rho/species_" + to_string(i)) );
-    groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/rho/species_" + to_string(i)+"/rho"));
+    FTI_InitGroup( &H5Group, std::string("species_" + to_string(i)).c_str(), get_group_ptr("/moments") );
+    H5Pair.first = H5Group; 
+    H5Pair.second = "/moments/species_" + to_string(i);
+    groups.push_back(H5Pair);
+    FTI_InitGroup( &H5Group, "rho", get_group_ptr("/moments/species_" + to_string(i)) );
+    H5Pair.first = H5Group; 
+    H5Pair.second = "/moments/species_" + to_string(i) + "/rho";
+    groups.push_back(H5Pair);
   }
   
-  group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-  FTI_InitGroup( group_ptr, "particles", NULL );
-  groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/particles"));
+  FTI_InitGroup( &H5Group, "particles", NULL );
+  H5Pair.first = H5Group; 
+  H5Pair.second = "/particles";
+  groups.push_back(H5Pair);
   for(i=0; i<ns; i++) {
-    group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-    FTI_InitGroup( group_ptr, std::string("species_" + to_string(i)).c_str(), get_group_ptr("/particles"));
-    groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/particles/species_" + to_string(i)));
+    FTI_InitGroup( &H5Group, std::string("species_" + to_string(i)).c_str(), get_group_ptr("/particles"));
+    H5Pair.first = H5Group; 
+    H5Pair.second = "/particles/species_" + to_string(i);
+    groups.push_back(H5Pair);
+    FTI_InitGroup( &H5Group, "q", get_group_ptr("/particles/species_" + to_string(i)));
+    H5Pair.first = H5Group; 
+    H5Pair.second = "/particles/species_" + to_string(i) + "/q";
+    groups.push_back(H5Pair);
+    FTI_InitGroup( &H5Group, "u", get_group_ptr("/particles/species_" + to_string(i)));
+    H5Pair.first = H5Group; 
+    H5Pair.second = "/particles/species_" + to_string(i) + "/u";
+    groups.push_back(H5Pair);
+    FTI_InitGroup( &H5Group, "v", get_group_ptr("/particles/species_" + to_string(i)));
+    H5Pair.first = H5Group; 
+    H5Pair.second = "/particles/species_" + to_string(i) + "/v";
+    groups.push_back(H5Pair);
+    FTI_InitGroup( &H5Group, "w", get_group_ptr("/particles/species_" + to_string(i)));
+    H5Pair.first = H5Group; 
+    H5Pair.second = "/particles/species_" + to_string(i) + "/w";
+    groups.push_back(H5Pair);
+    FTI_InitGroup( &H5Group, "x", get_group_ptr("/particles/species_" + to_string(i)));
+    H5Pair.first = H5Group; 
+    H5Pair.second = "/particles/species_" + to_string(i) + "/x";
+    groups.push_back(H5Pair);
+    FTI_InitGroup( &H5Group, "y", get_group_ptr("/particles/species_" + to_string(i)));
+    H5Pair.first = H5Group; 
+    H5Pair.second = "/particles/species_" + to_string(i) + "/y";
+    groups.push_back(H5Pair);
+    FTI_InitGroup( &H5Group, "z", get_group_ptr("/particles/species_" + to_string(i)));
+    H5Pair.first = H5Group; 
+    H5Pair.second = "/particles/species_" + to_string(i) + "/z";
+    groups.push_back(H5Pair);
   }
 
-  group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-  FTI_InitGroup( group_ptr, "fields", NULL );
-  groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/fields"));
+  FTI_InitGroup( &H5Group, "fields", NULL );
+  H5Pair.first = H5Group; 
+  H5Pair.second = "/fields";
+  groups.push_back(H5Pair);
   
-  group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-  FTI_InitGroup( group_ptr, "Bx", get_group_ptr("/fields") );
-  groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/fields/Bx"));
+  FTI_InitGroup( &H5Group, "Bx", get_group_ptr("/fields") );
+  H5Pair.first = H5Group; 
+  H5Pair.second = "/fields/Bx";
+  groups.push_back(H5Pair);
   
-  group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-  FTI_InitGroup( group_ptr, "By", get_group_ptr("/fields") );
-  groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/fields/By"));
+  FTI_InitGroup( &H5Group, "By", get_group_ptr("/fields") );
+  H5Pair.first = H5Group; 
+  H5Pair.second = "/fields/By";
+  groups.push_back(H5Pair);
   
-  group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-  FTI_InitGroup( group_ptr, "Bz", get_group_ptr("/fields") );
-  groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/fields/Bz"));
+  FTI_InitGroup( &H5Group, "Bz", get_group_ptr("/fields") );
+  H5Pair.first = H5Group; 
+  H5Pair.second = "/fields/Bz";
+  groups.push_back(H5Pair);
 
-  group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-  FTI_InitGroup( group_ptr, "Ex", get_group_ptr("/fields") );
-  groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/fields/Ex"));
+  FTI_InitGroup( &H5Group, "Ex", get_group_ptr("/fields") );
+  H5Pair.first = H5Group; 
+  H5Pair.second = "/fields/Ex";
+  groups.push_back(H5Pair);
   
-  group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-  FTI_InitGroup( group_ptr, "Ey", get_group_ptr("/fields") );
-  groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/fields/Ey"));
+  FTI_InitGroup( &H5Group, "Ey", get_group_ptr("/fields") );
+  H5Pair.first = H5Group; 
+  H5Pair.second = "/fields/Ey";
+  groups.push_back(H5Pair);
   
-  group_ptr = (FTIT_H5Group*) malloc(sizeof(FTIT_H5Group)); 
-  FTI_InitGroup( group_ptr, "Ez", get_group_ptr("/fields") );
-  groups.push_back(std::pair<FTIT_H5Group*, std::string>(group_ptr, "/fields/Ez"));
+  FTI_InitGroup( &H5Group, "Ez", get_group_ptr("/fields") );
+  H5Pair.first = H5Group; 
+  H5Pair.second = "/fields/Ez";
+  groups.push_back(H5Pair);
+  
 
 }
 
@@ -116,8 +166,14 @@ void FTIOutputAdaptor::write(const std::string & tag, int i_value) {
     
     // get name of data set
     std::string dataset_name = ptag.substr(ptag.rfind("/")+1);
+   
+    // allocate buffer and add do FTI buffer list
+    void * buffer = malloc(sizeof(int));
+    memcpy(buffer, &i_value, sizeof(int));
+    buffers.push_back(buffer);
+
+    FTI_Protect(var_id, buffer, 1, FTI_INTG);
     
-    FTI_Protect(var_id, &i_value, 1, FTI_INTG);
     FTI_DefineDataset( var_id, 0, NULL, dataset_name.c_str(), get_group_ptr(group_name));
     var_id++;
 
@@ -125,23 +181,205 @@ void FTIOutputAdaptor::write(const std::string & tag, int i_value) {
 
 void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, const int *i_array){
 
+    // add '/' as first character if missing 
+    std::string ptag = purify_object_name(tag);
+    
     // get group name
-    std::string group_name = tag.substr(0, tag.rfind("/"));
+    std::string group_name = ptag.substr(0, tag.rfind("/"));
     
     // get name of data set
-    std::string dataset_name = tag.substr(tag.rfind("/")+1);
+    std::string dataset_name = ptag.substr(tag.rfind("/")+1);
+   
+    // allocate buffer and add do FTI buffer list
+    void * buffer = malloc(sizeof(int)*dimens.nels());
+    memcpy(buffer, i_array, sizeof(int)*dimens.nels());
+    buffers.push_back(buffer);
+
+    FTI_Protect(var_id, buffer, dimens.nels(), FTI_INTG);
     
-    FTI_Protect(var_id, &i_array, dimens.nels(), FTI_INTG);
     int *dimensions = new int[dimens.size()];
     int i=0;
     for(; i<dimens.size(); i++) {
         dimensions[i] = dimens[i];
     }
+
     FTI_DefineDataset( var_id, dimens.size(), dimensions, dataset_name.c_str(), get_group_ptr(group_name));
     // TODO check if can be freed here !! delete[]dimensions;
     var_id++;
 
 }
+
+void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, double *d_array) {
+
+    // add '/' as first character if missing 
+    std::string ptag = purify_object_name(tag);
+    
+    // get group name
+    std::string group_name = ptag.substr(0, tag.rfind("/"));
+    
+    // get name of data set
+    std::string dataset_name = ptag.substr(tag.rfind("/")+1);
+    
+    FTI_Protect(var_id, d_array, dimens.nels(), FTI_DBLE);
+    
+    int *dimensions = new int[dimens.size()];
+    int i=0;
+    for(; i<dimens.size(); i++) {
+        dimensions[i] = dimens[i];
+    }
+
+    FTI_DefineDataset( var_id, dimens.size(), dimensions, dataset_name.c_str(), get_group_ptr(group_name));
+    // TODO check if can be freed here !! delete[]dimensions;
+    var_id++;
+
+}
+
+void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, double ***d_array){
+
+    int nels = dimens.nels();
+    double *d_array_p = new double[nels];
+    const int di = dimens[0];
+    const int dj = dimens[1];
+    const int dk = dimens[2];
+    const int djk = dk * dj;
+    for (int i = 0; i < di; ++i)
+      for (int j = 0; j < dj; ++j)
+        for (int k = 0; k < dk; ++k) {
+
+          if (dk != 1)
+            d_array_p[i * djk + j * dk + k] = d_array[i + 1][j + 1][k + 1]; // I am not writing ghost cells
+          else if (dj != 1)
+            d_array_p[i * djk + j * dk] = d_array[i + 1][j + 1][0];
+          else {
+            d_array_p[i * djk + j * dk] = d_array[i + 1][0][0];
+
+          }
+        }
+    
+    // add '/' as first character if missing 
+    std::string ptag = purify_object_name(tag);
+    
+    // get group name
+    std::string group_name = ptag.substr(0, tag.rfind("/"));
+    
+    // get name of data set
+    std::string dataset_name = ptag.substr(tag.rfind("/")+1);
+
+    // add to buffer of protected variables
+    buffers.push_back((void*)d_array_p);
+    
+    int *dimensions = new int[dimens.size()];
+    for(int i=0; i<dimens.size(); i++) {
+        dimensions[i] = dimens[i];
+    }
+
+    FTI_Protect( var_id, (void*)d_array_p, nels, FTI_DBLE );  
+    FTI_DefineDataset( var_id, dimens.size(), dimensions, dataset_name.c_str(), get_group_ptr(group_name));
+    var_id++;
+
+}
+
+void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, const int ns, double ****d_array) {
+    int nels = dimens.nels();
+    double *d_array_p = new double[nels];
+    const int di = dimens[0];
+    const int dj = dimens[1];
+
+
+    const int dk = dimens[2];
+    const int djk = dk * dj;
+    for (int i = 0; i < di; ++i)
+      for (int j = 0; j < dj; ++j)
+        for (int k = 0; k < dk; ++k) {
+          if (dk != 1)
+            d_array_p[i * djk + j * dk + k] = d_array[ns][i + 1][j + 1][k + 1]; // I am not writing ghost cells
+          else if (dj != 1)
+            d_array_p[i * djk + j * dk] = d_array[ns][i + 1][j + 1][0];
+          else
+            d_array_p[i * djk + j * dk] = d_array[ns][i + 1][0][0];
+        }
+    
+    // add '/' as first character if missing 
+    std::string ptag = purify_object_name(tag);
+    
+    // get group name
+    std::string group_name = ptag.substr(0, tag.rfind("/"));
+    
+    // get name of data set
+    std::string dataset_name = ptag.substr(tag.rfind("/")+1);
+
+    // add to buffer of protected variables
+    buffers.push_back((void*)d_array_p);
+    
+    int *dimensions = new int[dimens.size()];
+    for(int i=0; i<dimens.size(); i++) {
+        dimensions[i] = dimens[i];
+    }
+
+    FTI_Protect( var_id, (void*)d_array_p, nels, FTI_DBLE );  
+    FTI_DefineDataset( var_id, dimens.size(), dimensions, dataset_name.c_str(), get_group_ptr(group_name));
+    var_id++;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    void FTIOutputAdaptor::write(const std::string & tag, long i_value){}//
+    void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, const long *i_array){}
+
+    void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, const std::vector < int >&i_array){}
+
+    void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, const std::vector < long >&i_array){}
+
+    void FTIOutputAdaptor::write(const std::string & objname, const Dimens dimens, const int ***i_array){}
+
+
+    // w FTIOutputAdaptor::ite float functions
+    void FTIOutputAdaptor::write(const std::string & objname, float f){}
+    void FTIOutputAdaptor::write(const std::string & objname, const Dimens dimens, const float *f_array){}
+    void FTIOutputAdaptor::write(const std::string & objname, const Dimens dimens, const std::vector < float >&f_array){}
+    void FTIOutputAdaptor::write(const std::string & objname, const Dimens dimens, const float ***f_array){}
+
+    // w FTIOutputAdaptor::ite double functions
+    void FTIOutputAdaptor::write(const std::string & objname, double d){}
+    //void FTIOutputAdaptor::write(const std::string & objname, const Dimens dimens, const double *d_array){}
+    void FTIOutputAdaptor::write(const std::string & objname, const Dimens dimens, const std::vector < double >&d_array){}
+    //void FTIOutputAdaptor::write(const std::string & objname, const Dimens dimens, double ***d_array){}
+    //void FTIOutputAdaptor::write(const std::string & objname, const Dimens dimens, const int i, double ****d_array){}
+
+    void FTIOutputAdaptor::write(const std::string & objname, const Dimens dimens, double **d_array){}
+
+    //void FTIOutputAdaptor::write(const std::string & objname, const Dimens dimens, const int i, double ***d_array){}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //
 //void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, const std::vector < int >&i_array) {
 //  try {
@@ -171,53 +409,6 @@ void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, const
 //  }
 //}
 //
-//void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, const double *d_array) {
-//  try {
-//    if (dimens.size() == 0) {
-//      PSK::OutputException e("Zero Dimens size", "FTIOutputAdaptor::write(double* array)");
-//      throw e;
-//    }
-//
-//    std::string ptag = purify_object_name(tag);
-//
-//    std::vector < hid_t > hid_array;
-//    std::string dataset_name;
-//
-//    get_dataset_context(tag, hid_array, dataset_name);
-//
-//    hsize_t *hdf5dims = new hsize_t[dimens.size()];
-//    for (int i = 0; i < dimens.size(); ++i)
-//      hdf5dims[i] = dimens[i];
-//
-//    herr_t hdf5err = H5LTfind_dataset(hid_array[hid_array.size() - 1],
-//                                      dataset_name.c_str());
-//    if (hdf5err < 1) {
-//      herr_t hdf5err = H5LTmake_dataset_double(hid_array[hid_array.size() - 1],
-//                                               dataset_name.c_str(),
-//                                               dimens.size(), hdf5dims, d_array);
-//    }
-//    else {
-//      hid_t dataset_id = H5Dopen2(hid_array[hid_array.size() - 1], dataset_name.c_str(), H5P_DEFAULT); // HDF 1.8
-//      hdf5err = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, d_array);
-//      hdf5err = H5Dclose(dataset_id);
-//    }
-//
-//
-//    if (hdf5err < 0) {
-//      PSK::OutputException e("make_dataset fails for " + tag, "FTIOutputAdaptor::write(double* array)");
-//      throw e;
-//    }
-//
-//    // close groups, if any, but don't try to close the file id at [0]
-//    for (int i = hid_array.size() - 1; i > 0; --i)
-//      hdf5err = H5Gclose(hid_array[i]);
-//
-//    delete [] hdf5dims;
-//  } catch(PSK::Exception & e) {
-//    e.push("In FTIOutputAdaptor::write(double* array)");
-//    throw e;
-//  }
-//}
 //
 //void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, const std::vector < double >&d_array) {
 //  try {
@@ -258,37 +449,6 @@ void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, const
 //  }
 //
 //  try {
-//    int nels = dimens.nels();
-//    double *d_array_p = new double[nels];
-//    const int di = dimens[0];
-//    const int dj = dimens[1];
-//    const int dk = dimens[2];
-//    const int djk = dk * dj;
-//    for (int i = 0; i < di; ++i)
-//      for (int j = 0; j < dj; ++j)
-//        for (int k = 0; k < dk; ++k) {
-//
-//          if (dk != 1)
-//            d_array_p[i * djk + j * dk + k] = d_array[i + 1][j + 1][k + 1]; // I am not writing ghost cells
-//          else if (dj != 1)
-//            d_array_p[i * djk + j * dk] = d_array[i + 1][j + 1][0];
-//          else {
-//            d_array_p[i * djk + j * dk] = d_array[i + 1][0][0];
-//
-//          }
-//        }
-//
-//    // add to buffer of protected variables
-//    buffers.push_back((void*)d_array_p);
-//    
-//    // get name compontents of tag
-//    std::string ptag = purify_object_name(objname);
-//    std::vector < std::string > name_components;
-//    split_name(ptag, name_components);
-//
-//    FTI_Protect(var_id, 
-//    FTI_DefineDataset( var_id, dimens.size(), &dimens[0], ss.str().c_str(), &BxGroup); 
-//    var_id++;
 //
 //    //FTI_Protect
 //  }
@@ -298,37 +458,4 @@ void FTIOutputAdaptor::write(const std::string & tag, const Dimens dimens, const
 //  }
 //}
 //
-//void FTIOutputAdaptor::write(const std::string & objname, const Dimens dimens, const int ns, double ****d_array) {
-//  if (dimens.size() != 3) {
-//    PSK::OutputException e("Dimens size not 3 for object " + objname, "FTIOutputAdaptor::write(double**** array)");
-//    throw e;
-//  }
-//
-//  try {
-//    int nels = dimens.nels();
-//    double *d_array_p = new double[nels];
-//    const int di = dimens[0];
-//    const int dj = dimens[1];
-//
-//
-//    const int dk = dimens[2];
-//    const int djk = dk * dj;
-//    for (int i = 0; i < di; ++i)
-//      for (int j = 0; j < dj; ++j)
-//        for (int k = 0; k < dk; ++k) {
-//          if (dk != 1)
-//            d_array_p[i * djk + j * dk + k] = d_array[ns][i + 1][j + 1][k + 1]; // I am not writing ghost cells
-//          else if (dj != 1)
-//            d_array_p[i * djk + j * dk] = d_array[ns][i + 1][j + 1][0];
-//          else
-//            d_array_p[i * djk + j * dk] = d_array[ns][i + 1][0][0];
-//        }
-//    write(objname, dimens, d_array_p);
-//    delete[]d_array_p;
-//  }
-//  catch(PSK::Exception & e) {
-//    e.push("In FTIOutputAdaptor::write(double**** array)");
-//    throw e;
-//  }
-//}
 //

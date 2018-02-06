@@ -21,17 +21,17 @@ email                : markidis@lanl.gov, lapenta@lanl.gov
 using std::cout;
 using std::endl;
 
-extern int dummy;
-#if defined(FTI_CKPT) && defined(FTI_HDF5)
-extern FTIT_H5Group topoGroup;
-extern FTIT_H5Group fieldGroup;
-extern FTIT_H5Group BxGroup;
-extern FTIT_H5Group ByGroup;
-extern FTIT_H5Group BzGroup;
-extern FTIT_H5Group ExGroup;
-extern FTIT_H5Group EyGroup;
-extern FTIT_H5Group EzGroup;
-#endif
+//extern int dummy;
+//#if defined(FTI_CKPT) && defined(FTI_HDF5)
+//extern FTIT_H5Group topoGroup;
+//extern FTIT_H5Group fieldGroup;
+//extern FTIT_H5Group BxGroup;
+//extern FTIT_H5Group ByGroup;
+//extern FTIT_H5Group BzGroup;
+//extern FTIT_H5Group ExGroup;
+//extern FTIT_H5Group EyGroup;
+//extern FTIT_H5Group EzGroup;
+//#endif
 
 /**
  * MPI Data Structure. This class contains:
